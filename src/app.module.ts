@@ -5,6 +5,7 @@ import { WebSocketModule } from './web-socket/web-socket.module';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { JobsModule } from './jobs/jobs.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { JobsModule } from './jobs/jobs.module';
     }),
     WebSocketModule,
     JobsModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService],
