@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { JobsModule } from './jobs/jobs.module';
 import { RoomModule } from './room/room.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RoomModule } from './room/room.module';
         port: 6379,
       },
     }),
+    EventEmitterModule.forRoot(),
     WebSocketModule,
     JobsModule,
     RoomModule,
