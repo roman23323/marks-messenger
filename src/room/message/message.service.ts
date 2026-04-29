@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { SendMessageDto } from 'src/web-socket/dto/send-message.dto';
+import { SendMessageDto } from 'src/room/dto/send-message.dto';
 
 export interface MessageJobData extends SendMessageDto {}
 
@@ -9,7 +9,7 @@ export interface MessageJobData extends SendMessageDto {}
 export class MessageService {
     constructor(
         @InjectQueue('messages')
-        private readonly messageQueue: Queue<MessageJobData>
+        private readonly messageQueue: Queue<MessageJobData>,
     ) {}
 
     async processMessage(message: SendMessageDto): Promise<{ jobId: string }> {
