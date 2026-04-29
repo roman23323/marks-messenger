@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { WebSocketModule } from './web-socket/web-socket.module';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { JobsModule } from './jobs/jobs.module';
@@ -24,7 +23,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       },
     }),
     EventEmitterModule.forRoot(),
-    WebSocketModule,
     JobsModule,
     RoomModule,
   ],
