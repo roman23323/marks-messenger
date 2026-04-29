@@ -6,6 +6,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { JobsModule } from './jobs/jobs.module';
 import { RoomModule } from './room/room.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     EventEmitterModule.forRoot(),
     JobsModule,
     RoomModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
