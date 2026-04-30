@@ -6,8 +6,41 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id Int @id @default(autoincrement()) @unique
+  userName String @unique
+  rooms UsersToRooms[]
+}
+
+model Room {
+  id Int @id @default(autoincrement()) @unique
+  name String
+  members UsersToRooms[]
+  messages Message[]
+}
+
+model UsersToRooms {
+  user User @relation(fields: [userId], references: [id])
+  userId Int
+  room Room @relation(fields: [roomId], references: [id])
+  roomId Int
+  joinedAt DateTime @default(now())
+  leftAt DateTime?
+  @@id([userId, roomId])
+}
+
+model Message {
+  id String @id @default(uuid(7))
+  room Room @relation(fields: [roomId], references: [id])
+  roomId Int
+  message String
+
+  @@index([id(sort: Asc)])
 }
