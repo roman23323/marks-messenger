@@ -15,6 +15,7 @@
         "@nestjs/websockets": "^11.1.17",
         "@prisma/adapter-pg": "^7.8.0",
         "@prisma/client": "^7.8.0",
+        "bcryptjs": "^3.0.3",
         "bullmq": "^5.76.0",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.15.1",
@@ -365,6 +366,8 @@
     "base64id": ["base64id@2.0.0", "", {}, "sha512-lGe34o6EHj9y3Kts9R4ZYs/Gr+6N7MCaMlIFA3F1R2O5/m7K06AxfSeO5530PEERE6/WyEg3lsuyw4GHlPZHog=="],
 
     "baseline-browser-mapping": ["baseline-browser-mapping@2.10.10", "", { "bin": { "baseline-browser-mapping": "dist/cli.cjs" } }, "sha512-sUoJ3IMxx4AyRqO4MLeHlnGDkyXRoUG0/AI9fjK+vS72ekpV0yWVY7O0BVjmBcRtkNcsAO2QDZ4tdKKGoI6YaQ=="],
+
+    "bcryptjs": ["bcryptjs@3.0.3", "", { "bin": { "bcrypt": "bin/bcrypt" } }, "sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g=="],
 
     "better-result": ["better-result@2.9.0", "", {}, "sha512-NHwGDGVbRlWDOce3CwcfGIrcNR9zY37ut3SVwQVfv57DZdVhxjhA4mfaHN1n8QwWnRAR4iErpW1X/eaiaUaFYg=="],
 
