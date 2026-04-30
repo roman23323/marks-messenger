@@ -16,6 +16,7 @@ datasource db {
 model User {
   id Int @id @default(autoincrement()) @unique
   userName String @unique
+  password String
   rooms UsersToRooms[]
 }
 
