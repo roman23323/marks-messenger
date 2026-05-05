@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { SendMessageDto } from 'src/room/dto/send-message.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 
 export interface MessageJobData extends SendMessageDto {}
 
