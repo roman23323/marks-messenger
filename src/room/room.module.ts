@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
 import { EventsModule } from 'src/events/events.module';
-import { SseRegistryService } from 'src/events/events.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [EventsModule],
+  imports: [EventsModule, AuthModule],
   controllers: [RoomController],
-  providers: [RoomService, SseRegistryService]
+  providers: [RoomService],
 })
 export class RoomModule {}
