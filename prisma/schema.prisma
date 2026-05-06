@@ -20,7 +20,7 @@ model User {
 }
 
 model Room {
-  id Int @id @default(autoincrement()) @unique
+  id String @id @default(uuid(4)) @unique
   name String
   members UsersToRooms[]
   messages Message[]
@@ -30,7 +30,7 @@ model UsersToRooms {
   user User @relation(fields: [userId], references: [id])
   userId Int
   room Room @relation(fields: [roomId], references: [id])
-  roomId Int
+  roomId String
   joinedAt DateTime @default(now())
   leftAt DateTime?
   @@id([userId, roomId])
@@ -39,9 +39,9 @@ model UsersToRooms {
 model Message {
   id String @id @default(uuid(7))
   room Room @relation(fields: [roomId], references: [id])
-  roomId Int
+  roomId String
   message String
-user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
   userId Int
 
   @@index([id(sort: Asc)])
