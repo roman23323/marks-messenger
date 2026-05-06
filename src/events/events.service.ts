@@ -7,43 +7,67 @@ export interface SseEvent {
     id?: string;
 }
 
+interface Room {
+    subject: Subject<SseEvent>;
+    subCount: number;
+}
+
 @Injectable()
 export class SseRegistryService implements OnModuleDestroy {
-    private readonly connections = new Map<string, Subject<SseEvent>>();
+    private readonly connections = new Map<string, Room>();
 
     subscribe(roomId: string): Observable<SseEvent> {
-        if (!this.connections.has(roomId)) {
-            const subject = new Subject<SseEvent>();
-            this.connections.set(roomId, subject);
-        }
-        const subject = this.connections.get(roomId);
-        if (!subject) {
-            throw new Error('Поток закрылся во время попытки подписки!');
-        }
-        return subject.asObservable();
+        return new Observable<SseEvent>((observer) => {
+            const room = this.getOrCreateRoom(roomId);
+
+            room.subCount++;
+
+            const sub = room.subject.subscribe(observer);
+
+            return () => {
+                sub.unsubscribe();
+                this.handleDisconnect(roomId);
+            }
+        });
     }
 
     publish(roomId: string, event: SseEvent): boolean {
-        const subject = this.connections.get(roomId);
-        if (!subject) {
+        const room = this.connections.get(roomId);
+        if (!room || room.subCount <= 0) {
             console.log(`Поток комнаты ${roomId} закрылся во время публикации события!`);
             return false;
         }
-        subject.next(event);
+
+        room.subject.next(event);
         return true;
     }
 
-    closeRoom(roomId: string): void {
-        const subject = this.connections.get(roomId);
-        if (!subject) {
-            console.log('Попытка повторного закрытия потока!');
-            return;
+    private handleDisconnect(roomId: string) {
+        const room = this.connections.get(roomId);
+        if (!room) return;
+
+        room.subCount--;
+
+        if (room.subCount <= 0) {
+            room.subject.complete();
+            this.connections.delete(roomId);
         }
-        subject.complete();
-        this.connections.delete(roomId);
+    }
+
+    private getOrCreateRoom(roomId: string): Room {
+        let room = this.connections.get(roomId);
+        if (!room) {
+            room = {
+                subject: new Subject<SseEvent>,
+                subCount: 0
+            };
+            this.connections.set(roomId, room);
+        }
+        return room;
     }
 
     onModuleDestroy() {
-        this.connections.forEach((_, roomId) => this.closeRoom(roomId));
+        this.connections.forEach((room) => room.subject.complete());
+        this.connections.clear();
     }
 }

@@ -9,11 +9,6 @@ export class RoomController {
   @Sse(':roomId')
   streamEvents(@Param('roomId') roomId: string): Observable<MessageEvent> {
     console.log('Подключение к комнате по id: ', roomId);
-    return this.sseRegistry.subscribe(roomId).pipe(
-      finalize(() => {
-        console.log('Отключение SSE');
-        this.sseRegistry.closeRoom(roomId);
-      }),
-  );
+    return this.sseRegistry.subscribe(roomId);
   }
 }
