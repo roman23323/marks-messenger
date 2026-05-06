@@ -9,8 +9,4 @@ export class SendMessageDto {
     @MaxLength(100, { message: 'Сообщение не должно быть большее 100 символов'})
     @IsNotEmpty({ message: 'Сообщение не должно быть пустым' })
     text: string;
-
-    @IsUUID('4', { message: 'Некорректный формат id запроса'})
-    @IsNotEmpty({ message: 'Идентификатор запроса обязателен' })
-    requestId: string;
 }

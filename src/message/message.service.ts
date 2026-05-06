@@ -3,27 +3,26 @@ import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
 import { SendMessageDto } from './dto/send-message.dto';
 
-export interface MessageJobData extends SendMessageDto {}
+export interface Message extends SendMessageDto {
+    userId: number
+}
 
 @Injectable()
 export class MessageService {
     constructor(
         @InjectQueue('messages')
-        private readonly messageQueue: Queue<MessageJobData>,
+        private readonly messageQueue: Queue<Message>,
     ) {}
 
-    async processMessage(message: SendMessageDto): Promise<{ jobId: string }> {
+    async processMessage(message: Message) {
         try {
             const job = await this.messageQueue.add(
                 'send-message',
                 message,
                 {
-                    jobId: message.requestId,
                     removeOnComplete: true,
                 },
             );
-
-            return { jobId: job.id! };
         } catch (error) {
             console.error(error);
             throw error;
