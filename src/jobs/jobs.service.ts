@@ -2,19 +2,21 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { sleep } from 'bun';
 import { SseRegistryService } from 'src/events/events.service';
-import { MessageJobData } from 'src/message/message.service';
+import { Message } from 'src/message/message.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
 
     constructor(
         private readonly sseRegistry: SseRegistryService,
+        private readonly prisma: PrismaService
     ) {
         super();
     }
 
-    async process(job: Job<MessageJobData, any, string>): Promise<any> {
-        const { requestId, roomId, text } = job.data;
+    async process(job: Job<Message, any, string>): Promise<any> {
+        const { userId, roomId, text } = job.data;
 
         try {    
             this.sseRegistry.publish(roomId, {
@@ -22,8 +24,19 @@ export class JobsService extends WorkerHost {
                 data: { message: 'Processing...' }
             });
 
-            const result = `Обработанно: ${job.data.text}`;
+            const result = `Обработанно: ${text}`;
             await sleep(5000);
+            await this.prisma.message.create({
+                data: {
+                    room: {
+                        connect: { id: roomId }
+                    },
+                    message: result,
+                    user: {
+                        connect: { id: userId }
+                    }
+                }
+            });
     
             this.sseRegistry.publish(roomId, {
                 type: 'complete',
