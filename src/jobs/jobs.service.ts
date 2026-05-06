@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { sleep } from 'bun';
 import { SseRegistryService } from 'src/events/events.service';
-import { MessageJobData } from 'src/room/message/message.service';
+import { MessageJobData } from 'src/message/message.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
