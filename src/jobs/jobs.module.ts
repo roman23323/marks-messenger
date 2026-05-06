@@ -3,7 +3,7 @@ import { JobsService } from './jobs.service';
 import { EventsModule } from 'src/events/events.module';
 
 @Module({
-  providers: [JobsService],
   imports: [EventsModule],
+  providers: [JobsService],
 })
 export class JobsModule {}
