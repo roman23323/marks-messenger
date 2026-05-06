@@ -16,6 +16,7 @@ model User {
   username String @unique
   password String
   rooms UsersToRooms[]
+  messages Message[]
 }
 
 model Room {
@@ -40,6 +41,8 @@ model Message {
   room Room @relation(fields: [roomId], references: [id])
   roomId Int
   message String
+user User @relation(fields: [userId], references: [id])
+  userId Int
 
   @@index([id(sort: Asc)])
 }
