@@ -17,9 +17,7 @@ import { MessageModule } from './message/message.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      validate: (env) => ({
-        GIGACHAT_AUTH_KEY: env.GIGACHAT_AUTH_KEY,
-        DATABASE_URL: env.DATABASE_URL,
+    }),
       })
     }),
     BullModule.forRoot({
