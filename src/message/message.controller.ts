@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, Post, Req, UseGuards } from '@nestjs/common';
 import { SendMessageDto } from './dto/send-message.dto';
 import { Message, MessageService } from './message.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('message')
 export class MessageController {

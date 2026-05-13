@@ -1,7 +1,7 @@
 import { Body, Controller, MessageEvent, Param, Post, Sse, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { SseRegistryService } from 'src/events/events.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { SseRegistryService } from '../events/events.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomService } from './room.service';
 

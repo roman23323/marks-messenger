@@ -1,9 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { sleep } from 'bun';
-import { SseRegistryService } from 'src/events/events.service';
-import { Message } from 'src/message/message.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { SseRegistryService } from '../events/events.service';
+import { Message } from '../message/message.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
