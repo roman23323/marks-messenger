@@ -7,8 +7,6 @@ import { RedisService } from '../redis/redis.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
-    private readonly usersRooms = new Map<string, number[]>;
-
     constructor(
         private readonly redisService: RedisService,
         private readonly prisma: PrismaService
@@ -20,12 +18,10 @@ export class JobsService extends WorkerHost {
         const { userId, roomId, text } = job.data;
         console.log('Обработка Job');
         try {
-            this.redisService.publish('chat:status', {
-                type: 'message-in-progress',
-                data: {
-                    roomId,
-                    userId
-                }
+            this.redisService.publish('chat', {
+                type: 'processing',
+                roomId,
+                userId
             });
 
             const result = `Обработанно: ${text}`;
@@ -42,17 +38,22 @@ export class JobsService extends WorkerHost {
                 }
             });
 
-            this.redisService.publish('chat:message', {
-                id: messageProcessed.id,
-                userId,
+            this.redisService.publish('chat', {
+                type: 'new-message',
                 roomId,
-                text: messageProcessed.message
+                userId,
+                data: {
+                    id: messageProcessed.id,
+                    text: messageProcessed.message
+                }
             });
 
             return result;
         } catch (error) {
-            this.redisService.publish('chat:error', {
-                errorMessage: error.message
+            this.redisService.publish('chat', {
+                type: 'error',
+                roomId,
+                userId
             })
             throw error;
         }
