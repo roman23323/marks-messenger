@@ -1,4 +1,4 @@
-import { Body, Controller, MessageEvent, Param, Post, Req, Sse, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, MessageEvent, Param, Post, Query, Req, Sse, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '../auth/auth.guard';
 import { SseRegistryService } from '../events/events.service';
@@ -24,5 +24,45 @@ export class RoomController {
   @Post()
   async createRoom(@Body() { name }: CreateRoomDto) {
     return { roomId: await this.roomService.createRoom(name) };
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/join/:roomId')
+  async joinRoom(
+    @Param('roomId') roomId: string,
+    @Req() request
+  ) {
+    const userId = request['user'].sub;
+    return await this.roomService.joinRoom(roomId, userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/quit/:roomId')
+  async quitRoom(
+    @Param('roomId') roomId: string,
+    @Req() request
+  ) {
+    const userId = request['user'].sub;
+    return await this.roomService.quitRoom(roomId, userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/:roomId/messages')
+  fetchHistory(
+    @Req() request,
+    @Param('roomId') roomId: string,
+    @Query('limit') limit?: number,
+    @Query('before') before?: string,
+    @Query('after') after?: string
+  ) {
+    const userId = request['user'].sub;
+    const messages = this.roomService.fetchHistory(userId, roomId, limit, before, after);
+    return messages;
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/list')
+  roomList() {
+    return this.roomService.getRoomList();
   }
 }
