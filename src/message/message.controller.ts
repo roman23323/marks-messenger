@@ -14,11 +14,11 @@ export class MessageController {
     @Body() sendMessageDto: SendMessageDto,
     @Req() request
   ) {
+    console.log('Пришло новое сообщение');
     const userId: number = request['user'].sub;
-    const message: Message = { ...sendMessageDto, userId };
-    await this.messageService.processMessage(message);
+    await this.messageService.processMessage(sendMessageDto.roomId, userId, sendMessageDto.text);
     return {
-      roomId: message.roomId,
+      roomId: sendMessageDto.roomId,
       status: 'queued',
     };
   }
