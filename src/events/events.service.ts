@@ -1,26 +1,23 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
-import { Message } from '../message/message.service';
-
-export interface SseEvent {
-    type: 'progress' | 'complete' | 'error';
-    data: Message;
-    id?: string;
-}
+import { RedisService } from '../redis/redis.service';
+import { ChatMessage } from 'src/redis/types/ChatMessage';
 
 @Injectable()
 export class SseRegistryService implements OnModuleDestroy {
-    private readonly connections = new Map<number, Subject<SseEvent>[]>();
+    constructor(private readonly redisService: RedisService) {}
 
-    subscribe(userId: number): Observable<SseEvent> {
-        return new Observable<SseEvent>((observer) => {
+    private readonly connections = new Map<number, Subject<ChatMessage>[]>();
+
+    subscribe(userId: number): Observable<ChatMessage> {
+        return new Observable<ChatMessage>((observer) => {
             let conns = this.connections.get(userId);
             if (!conns) {
                 conns = [];
                 this.connections.set(userId, conns);
             }
 
-            const subject = new Subject<SseEvent>(); 
+            const subject = new Subject<ChatMessage>(); 
             conns.push(subject);
 
             const sub = subject.subscribe(observer);
@@ -32,18 +29,20 @@ export class SseRegistryService implements OnModuleDestroy {
         });
     }
 
-    publish(userId: number, event: SseEvent): boolean {
-        const conns = this.connections.get(userId);
-        if (!conns || conns.length <= 0) {
-            console.log(`Поток пользователя ${userId} закрыты на момент публикации события!`);
-            return false;
+    async publish(message: ChatMessage) {
+        const roomId = message.roomId;
+        const userIds = await this.redisService.getRoomMembers(roomId);
+        for (const userId of userIds) {
+            const conns = this.connections.get(parseInt(userId));
+            if (!conns || conns.length <= 0) {
+                console.log(`Пользователь ${userId} оффлайн, ему нельзя доставить сообщение!`);
+            } else {
+                conns.forEach(conn => conn.next(message));
+            }
         }
-
-        conns.forEach(conn => conn.next(event));
-        return true;
     }
 
-    private handleDisconnect(userId: number, sub: Subject<SseEvent>) {
+    private handleDisconnect(userId: number, sub: Subject<ChatMessage>) {
         let conns = this.connections.get(userId);
         if (!conns) return;
         conns = conns?.filter(s => s !== sub);
