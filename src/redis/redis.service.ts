@@ -13,6 +13,10 @@ export class RedisService {
         })
     }
 
+    async publish(channel: string, payload: any) {
+        this.redis.publish(channel, JSON.stringify(payload))
+    }
+
     async addUserToRoom(roomId: string, userId: number) {
         await this.redis.sadd(`room:${roomId}`, userId);
     }
