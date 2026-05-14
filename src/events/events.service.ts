@@ -1,73 +1,57 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
+import { Message } from '../message/message.service';
 
 export interface SseEvent {
     type: 'progress' | 'complete' | 'error';
-    data: any;
+    data: Message;
     id?: string;
-}
-
-interface Room {
-    subject: Subject<SseEvent>;
-    subCount: number;
 }
 
 @Injectable()
 export class SseRegistryService implements OnModuleDestroy {
-    private readonly connections = new Map<string, Room>();
+    private readonly connections = new Map<number, Subject<SseEvent>[]>();
 
-    subscribe(roomId: string): Observable<SseEvent> {
+    subscribe(userId: number): Observable<SseEvent> {
         return new Observable<SseEvent>((observer) => {
-            const room = this.getOrCreateRoom(roomId);
+            let conns = this.connections.get(userId);
+            if (!conns) {
+                conns = [];
+                this.connections.set(userId, conns);
+            }
 
-            room.subCount++;
+            const subject = new Subject<SseEvent>(); 
+            conns.push(subject);
 
-            const sub = room.subject.subscribe(observer);
+            const sub = subject.subscribe(observer);
 
             return () => {
                 sub.unsubscribe();
-                this.handleDisconnect(roomId);
+                this.handleDisconnect(userId, subject);
             }
         });
     }
 
-    publish(roomId: string, event: SseEvent): boolean {
-        const room = this.connections.get(roomId);
-        if (!room || room.subCount <= 0) {
-            console.log(`Поток комнаты ${roomId} закрылся во время публикации события!`);
+    publish(userId: number, event: SseEvent): boolean {
+        const conns = this.connections.get(userId);
+        if (!conns || conns.length <= 0) {
+            console.log(`Поток пользователя ${userId} закрыты на момент публикации события!`);
             return false;
         }
 
-        room.subject.next(event);
+        conns.forEach(conn => conn.next(event));
         return true;
     }
 
-    private handleDisconnect(roomId: string) {
-        const room = this.connections.get(roomId);
-        if (!room) return;
-
-        room.subCount--;
-
-        if (room.subCount <= 0) {
-            room.subject.complete();
-            this.connections.delete(roomId);
-        }
-    }
-
-    private getOrCreateRoom(roomId: string): Room {
-        let room = this.connections.get(roomId);
-        if (!room) {
-            room = {
-                subject: new Subject<SseEvent>,
-                subCount: 0
-            };
-            this.connections.set(roomId, room);
-        }
-        return room;
+    private handleDisconnect(userId: number, sub: Subject<SseEvent>) {
+        let conns = this.connections.get(userId);
+        if (!conns) return;
+        conns = conns?.filter(s => s !== sub);
+        if (conns.length == 0) this.connections.delete(userId);
     }
 
     onModuleDestroy() {
-        this.connections.forEach((room) => room.subject.complete());
+        this.connections.forEach((conns) => conns.forEach(conn => conn.complete()));
         this.connections.clear();
     }
 }
