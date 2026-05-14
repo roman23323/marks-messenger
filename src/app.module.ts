@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MessageModule } from './message/message.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MessageModule } from './message/message.module';
     UsersModule,
     AuthModule,
     MessageModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
