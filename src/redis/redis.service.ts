@@ -1,31 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import { ChatMessage } from './types/ChatMessage';
 
 @Injectable()
 export class RedisService {
-    private readonly redis: Redis;
+    private readonly redisPub: Redis;
+    private readonly redisSub: Redis;
 
     constructor(private readonly configModule: ConfigService) {
-        this.redis = new Redis({
+        this.redisPub = new Redis({
             host: configModule.get<string>('REDIS_URL'),
             port: configModule.get<number>('REDIS_PORT')
+        });
+        this.redisSub = this.redisPub.duplicate();
+    }
+
+    async publish(channel: string, payload: ChatMessage) {
+        this.redisPub.publish(channel, JSON.stringify(payload))
+    }
+
+    async subscribe(
+        channel: string,
+        handler: (message: any) => void
+    ) {
+        await this.redisSub.subscribe(channel);
+
+        this.redisSub.on('message', (ch, message) => {
+            if (ch !== channel) return;
+
+            handler(JSON.parse(message));
         })
     }
 
-    async publish(channel: string, payload: any) {
-        this.redis.publish(channel, JSON.stringify(payload))
-    }
-
     async addUserToRoom(roomId: string, userId: number) {
-        await this.redis.sadd(`room:${roomId}`, userId);
+        await this.redisPub.sadd(`room:${roomId}`, userId);
     }
 
     async removeUserFromRoom(roomId: string, userId: number) {
-        await this.redis.srem(`room:${roomId}`, userId);
+        await this.redisPub.srem(`room:${roomId}`, userId);
     }
 
-    async getRoomMemers(roomId: string): Promise<string[]> {
-        return this.redis.smembers(`room:${roomId}`);
+    async getRoomMembers(roomId: string): Promise<string[]> {
+        return this.redisPub.smembers(`room:${roomId}`);
     }
 }
