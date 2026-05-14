@@ -13,3 +13,15 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+  server:
+    image: mao-server # Локально собранный из Dockerfile сервер
+    environment:
+      - DATABASE_URL=postgres://test_user:test_password@db:5432/test_db
+      - REDIS_URL=redis
+      - JWT_SECRET=d3699b6a467b1d32e1da53885d407e718f637fe076782af0efe3b7d5b111c123
+      - JWT_EXPIRES_IN=5h
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
