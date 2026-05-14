@@ -1,12 +1,13 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { sleep } from 'bun';
-import { SseRegistryService } from '../events/events.service';
+import { SseEvent, SseRegistryService } from '../events/events.service';
 import { Message } from '../message/message.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
+    private readonly usersRooms = new Map<string, number[]>;
 
     constructor(
         private readonly sseRegistry: SseRegistryService,
@@ -17,16 +18,21 @@ export class JobsService extends WorkerHost {
 
     async process(job: Job<Message, any, string>): Promise<any> {
         const { userId, roomId, text } = job.data;
-
-        try {    
-            this.sseRegistry.publish(roomId, {
+        console.log('Обработка Job');
+        try {
+            this.publishToRoomMembers(roomId, {
                 type: 'progress',
-                data: { message: 'Processing...' }
+                data: {
+                    id: 'progress-message',
+                    userId: 0,
+                    roomId: '0',
+                    text: 'Обработка сообщения'
+                }
             });
 
             const result = `Обработанно: ${text}`;
             await sleep(5000);
-            await this.prisma.message.create({
+            const messageProcessed = await this.prisma.message.create({
                 data: {
                     room: {
                         connect: { id: roomId }
@@ -38,19 +44,95 @@ export class JobsService extends WorkerHost {
                 }
             });
     
-            this.sseRegistry.publish(roomId, {
+            this.publishToRoomMembers(roomId, {
                 type: 'complete',
-                data: { message: result },
+                data: {
+                    roomId,
+                    userId,
+                    text: messageProcessed.message,
+                    id: messageProcessed.id
+                },
                 id: job.id,
             });
 
             return result;
         } catch (error) {
-            this.sseRegistry.publish(roomId, {
+            this.publishToRoomMembers(roomId, {
                 type: 'error',
-                data: { message: error.message },
+                data: {
+                    id: 'error-message',
+                    userId: 0,
+                    roomId: '0',
+                    text: 'Ошибка при публикации сообщения'
+                }
             });
             throw error;
+        }
+    }
+
+    private async getRoomMemberIds(roomId: string) {
+        if (!this.usersRooms.has(roomId)) {
+            const roomUsers = await this.prisma.usersToRooms.findMany({
+                where: {
+                    roomId
+                },
+                select: {
+                    userId: true
+                }
+            });
+            const members = roomUsers.map(u => u.userId);
+            this.usersRooms.set(roomId, members);
+        }
+        return this.usersRooms.get(roomId)!;
+    }
+
+    private async publishToRoomMembers(roomId: string, event: SseEvent) {
+        const connectedMembersIds = await this.getRoomMemberIds(roomId);
+        console.log('Получатели:', connectedMembersIds);
+        connectedMembersIds?.forEach(id => this.sseRegistry.publish(id, event));
+    }
+
+    async addUsersRooms(userId: number, roomId: string) {
+        const currentMembers = await this.getRoomMemberIds(roomId);
+        if (currentMembers.findIndex(id => id === userId) !== -1) {
+            console.log('Пользователь уже состоит в комнате!');
+        } else {
+            const membersInDB = await this.prisma.usersToRooms.findMany({
+                where: {
+                    roomId
+                },
+                select: {
+                    userId: true
+                }
+            });
+            const idsInDB = membersInDB.map(member => member.userId);
+            if (idsInDB.findIndex(id => id === userId) !== -1) {
+                this.usersRooms.get(roomId)!.push(userId);
+            } else {
+                console.log('Пользователь не состоит в комнате, его нельзя добавить в список!');
+            }
+        }
+    }
+
+    async removeUsersRooms(userId: number, roomId: string) {
+        const currentMembers = await this.getRoomMemberIds(roomId);
+        if (currentMembers.findIndex(id => id === userId) === -1) {
+            console.log('Пользователь уже вышел из комнаты!');
+        } else {
+            const membersInDB = await this.prisma.usersToRooms.findMany({
+                where: {
+                    roomId
+                },
+                select: {
+                    userId: true
+                }
+            });
+            const idsInDB = membersInDB.map(member => member.userId);
+            if (idsInDB.findIndex(id => id === userId) === -1) {
+                this.usersRooms.get(roomId)!.splice(userId);
+            } else {
+                console.log('Пользователь не вышел из комнаты, его нельзя удалить из списка!');
+            }
         }
     }
 }
