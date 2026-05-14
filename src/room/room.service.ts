@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { JobsService } from '../jobs/jobs.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class RoomService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly jobsService: JobsService
+        private readonly redisService: RedisService
     ) {}
 
     async createRoom(name: string) {
@@ -25,7 +25,7 @@ export class RoomService {
                 roomId
             }
         });
-        this.jobsService.addUsersRooms(userId, roomId);
+        this.redisService.addUserToRoom(roomId, userId);
     }
 
     async quitRoom(roomId: string, userId: number) {
@@ -37,7 +37,7 @@ export class RoomService {
                 }
             }
         });
-        this.jobsService.removeUsersRooms(userId, roomId);
+        this.redisService.removeUserFromRoom(roomId, userId);
     }
 
     async fetchHistory(

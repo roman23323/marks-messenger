@@ -3,10 +3,10 @@ import { RoomController } from './room.controller';
 import { RoomService } from './room.service';
 import { EventsModule } from '../events/events.module';
 import { AuthModule } from '../auth/auth.module';
-import { JobsModule } from '../jobs/jobs.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [EventsModule, AuthModule, JobsModule],
+  imports: [EventsModule, AuthModule, RedisModule],
   controllers: [RoomController],
   providers: [RoomService],
 })
