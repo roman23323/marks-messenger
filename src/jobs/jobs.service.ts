@@ -91,48 +91,4 @@ export class JobsService extends WorkerHost {
         console.log('Получатели:', connectedMembersIds);
         connectedMembersIds?.forEach(id => this.sseRegistry.publish(id, event));
     }
-
-    async addUsersRooms(userId: number, roomId: string) {
-        const currentMembers = await this.getRoomMemberIds(roomId);
-        if (currentMembers.findIndex(id => id === userId) !== -1) {
-            console.log('Пользователь уже состоит в комнате!');
-        } else {
-            const membersInDB = await this.prisma.usersToRooms.findMany({
-                where: {
-                    roomId
-                },
-                select: {
-                    userId: true
-                }
-            });
-            const idsInDB = membersInDB.map(member => member.userId);
-            if (idsInDB.findIndex(id => id === userId) !== -1) {
-                this.usersRooms.get(roomId)!.push(userId);
-            } else {
-                console.log('Пользователь не состоит в комнате, его нельзя добавить в список!');
-            }
-        }
-    }
-
-    async removeUsersRooms(userId: number, roomId: string) {
-        const currentMembers = await this.getRoomMemberIds(roomId);
-        if (currentMembers.findIndex(id => id === userId) === -1) {
-            console.log('Пользователь уже вышел из комнаты!');
-        } else {
-            const membersInDB = await this.prisma.usersToRooms.findMany({
-                where: {
-                    roomId
-                },
-                select: {
-                    userId: true
-                }
-            });
-            const idsInDB = membersInDB.map(member => member.userId);
-            if (idsInDB.findIndex(id => id === userId) === -1) {
-                this.usersRooms.get(roomId)!.splice(userId);
-            } else {
-                console.log('Пользователь не вышел из комнаты, его нельзя удалить из списка!');
-            }
-        }
-    }
 }
