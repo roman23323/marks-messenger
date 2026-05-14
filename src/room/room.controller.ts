@@ -1,4 +1,4 @@
-import { Body, Controller, MessageEvent, Param, Post, Sse, UseGuards } from '@nestjs/common';
+import { Body, Controller, MessageEvent, Param, Post, Req, Sse, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '../auth/auth.guard';
 import { SseRegistryService } from '../events/events.service';
@@ -13,10 +13,11 @@ export class RoomController {
   ) {}
 
   @UseGuards(AuthGuard)
-  @Sse(':roomId')
-  streamEvents(@Param('roomId') roomId: string): Observable<MessageEvent> {
-    console.log('Подключение к комнате по id: ', roomId);
-    return this.sseRegistry.subscribe(roomId);
+  @Sse('/stream')
+  streamEvents(@Req() request): Observable<MessageEvent> {
+    const userId = request['user'].sub;
+    console.log('Подключение пользователя: ', userId);
+    return this.sseRegistry.subscribe(userId);
   }
 
   @UseGuards(AuthGuard)
