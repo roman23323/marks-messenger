@@ -1,16 +1,16 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { sleep } from 'bun';
-import { SseEvent, SseRegistryService } from '../events/events.service';
 import { Message } from '../message/message.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 @Processor('messages')
 export class JobsService extends WorkerHost {
     private readonly usersRooms = new Map<string, number[]>;
 
     constructor(
-        private readonly sseRegistry: SseRegistryService,
+        private readonly redisService: RedisService,
         private readonly prisma: PrismaService
     ) {
         super();
@@ -20,13 +20,11 @@ export class JobsService extends WorkerHost {
         const { userId, roomId, text } = job.data;
         console.log('Обработка Job');
         try {
-            this.publishToRoomMembers(roomId, {
-                type: 'progress',
+            this.redisService.publish('chat:status', {
+                type: 'message-in-progress',
                 data: {
-                    id: 'progress-message',
-                    userId: 0,
-                    roomId: '0',
-                    text: 'Обработка сообщения'
+                    roomId,
+                    userId
                 }
             });
 
@@ -43,52 +41,20 @@ export class JobsService extends WorkerHost {
                     }
                 }
             });
-    
-            this.publishToRoomMembers(roomId, {
-                type: 'complete',
-                data: {
-                    roomId,
-                    userId,
-                    text: messageProcessed.message,
-                    id: messageProcessed.id
-                },
-                id: job.id,
+
+            this.redisService.publish('chat:message', {
+                id: messageProcessed.id,
+                userId,
+                roomId,
+                text: messageProcessed.message
             });
 
             return result;
         } catch (error) {
-            this.publishToRoomMembers(roomId, {
-                type: 'error',
-                data: {
-                    id: 'error-message',
-                    userId: 0,
-                    roomId: '0',
-                    text: 'Ошибка при публикации сообщения'
-                }
-            });
+            this.redisService.publish('chat:error', {
+                errorMessage: error.message
+            })
             throw error;
         }
-    }
-
-    private async getRoomMemberIds(roomId: string) {
-        if (!this.usersRooms.has(roomId)) {
-            const roomUsers = await this.prisma.usersToRooms.findMany({
-                where: {
-                    roomId
-                },
-                select: {
-                    userId: true
-                }
-            });
-            const members = roomUsers.map(u => u.userId);
-            this.usersRooms.set(roomId, members);
-        }
-        return this.usersRooms.get(roomId)!;
-    }
-
-    private async publishToRoomMembers(roomId: string, event: SseEvent) {
-        const connectedMembersIds = await this.getRoomMemberIds(roomId);
-        console.log('Получатели:', connectedMembersIds);
-        connectedMembersIds?.forEach(id => this.sseRegistry.publish(id, event));
     }
 }
