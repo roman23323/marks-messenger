@@ -24,8 +24,7 @@ import { RedisModule } from './redis/redis.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         connection: {
-          host: configService.get('REDIS_URL'),
-          port: 6379
+          url: configService.getOrThrow('REDIS_URL')
         }
       })
     }),

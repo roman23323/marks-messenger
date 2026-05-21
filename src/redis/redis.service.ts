@@ -8,12 +8,23 @@ export class RedisService {
     private readonly redisPub: Redis;
     private readonly redisSub: Redis;
 
-    constructor(private readonly configModule: ConfigService) {
-        this.redisPub = new Redis({
-            host: configModule.get<string>('REDIS_URL'),
-            port: configModule.get<number>('REDIS_PORT')
+    constructor(private readonly configService: ConfigService) {
+        this.redisPub = new Redis(configService.getOrThrow('REDIS_URL'), {
+            maxRetriesPerRequest: null,
+            retryStrategy: (times) => Math.min(times * 50, 2000),
+            reconnectOnError: (err: any) => {
+                return err && ['ECONNREFUSED', 'ENOTFOUND', 'ESERVFAIL'].includes(err.code);
+            },
         });
+
+        this.redisPub.on('error', (error) => {
+            console.error('Redis publisher error:', error);
+        });
+
         this.redisSub = this.redisPub.duplicate();
+        this.redisSub.on('error', (error) => {
+            console.error('Redis subscriber error:', error);
+        });
     }
 
     async publish(channel: string, payload: ChatMessage) {
