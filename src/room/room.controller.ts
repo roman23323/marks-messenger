@@ -1,9 +1,10 @@
-import { Body, Controller, Get, MessageEvent, Param, Post, Query, Req, Sse, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req, Sse, UseGuards } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { AuthGuard } from '../auth/auth.guard';
 import { SseRegistryService } from '../events/events.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomService } from './room.service';
+import { ChatMessage } from 'src/redis/types/ChatMessage';
 
 @Controller('room')
 export class RoomController {
@@ -14,7 +15,7 @@ export class RoomController {
 
   @UseGuards(AuthGuard)
   @Sse('/stream')
-  streamEvents(@Req() request): Observable<MessageEvent> {
+  streamEvents(@Req() request): Observable<ChatMessage> {
     const userId = request['user'].sub;
     console.log('Подключение пользователя: ', userId);
     return this.sseRegistry.subscribe(userId);
