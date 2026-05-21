@@ -11,7 +11,6 @@ export class AuthController {
     async register(@Body() authDto: AuthDto) {
         const { username, password } = authDto;
         await this.authService.createUser(username, password);
-        console.log("Запрос на обработан на экземпляре с ID:", process.env.HOSTNAME);
         return this.authService.signIn(username, password);
     }
 
@@ -19,6 +18,7 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     signIn(@Body() authDto: AuthDto) {
         const { username, password } = authDto;
+        console.log("Запрос на обработан на экземпляре с ID:", process.env.HOSTNAME);
         return this.authService.signIn(username, password);
     }
 }
