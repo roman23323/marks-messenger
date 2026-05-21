@@ -1,9 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
+    private readonly logger = new Logger(AuthController.name);
+
     constructor(private readonly authService: AuthService) {}
 
     @Post('/register')
@@ -18,7 +20,7 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     signIn(@Body() authDto: AuthDto) {
         const { username, password } = authDto;
-        console.log("Запрос на обработан на экземпляре с ID:", process.env.HOSTNAME);
+        this.logger.log(`Вход в аккаунт пользователя ${authDto.username}`);
         return this.authService.signIn(username, password);
     }
 }
