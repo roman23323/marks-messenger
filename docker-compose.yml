@@ -20,7 +20,7 @@ services:
       retries: 5
 
   server:
-    image: roman23323/marks-messenger:2f25ed53fdb0b47e57ac10b29283a617b65b9aaa
+    image: roman23323/marks-messenger:latest
     environment:
       - DATABASE_URL=postgres://test_user:test_password@db:5432/test_db
       - REDIS_URL=redis://redis:6379
