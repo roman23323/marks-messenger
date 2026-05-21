@@ -4,7 +4,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { SseRegistryService } from '../events/events.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { RoomService } from './room.service';
-import { ChatMessage } from 'src/redis/types/ChatMessage';
+import { ChatMessage } from '../redis/types/ChatMessage';
 
 @Controller('room')
 export class RoomController {

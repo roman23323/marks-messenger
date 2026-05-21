@@ -1,7 +1,7 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import { RedisService } from '../redis/redis.service';
-import { ChatMessage } from 'src/redis/types/ChatMessage';
+import { ChatMessage } from '../redis/types/ChatMessage';
 
 @Injectable()
 export class SseRegistryService implements OnModuleDestroy {
