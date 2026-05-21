@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { RedisService } from "../redis.service";
-import { SseRegistryService } from "src/events/events.service";
 import { ChatMessage } from "../types/ChatMessage";
+import { SseRegistryService } from "../../events/events.service";
 
 @Injectable()
 export class RoomEventsConsumer implements OnModuleInit {
