@@ -12,7 +12,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MessageModule } from './message/message.module';
 import { RedisModule } from './redis/redis.module';
-import { RequestIdMiddleware } from '../request-id.middleware';
+import { RequestIdMiddleware } from './request-id.middleware';
 
 @Module({
   imports: [

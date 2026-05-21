@@ -1,5 +1,5 @@
 import { LoggerService, Injectable } from '@nestjs/common';
-import { requestStorage } from 'request-store';
+import { requestStorage } from 'src/request-store';
 
 @Injectable()
 export class JsonLogger implements LoggerService {
