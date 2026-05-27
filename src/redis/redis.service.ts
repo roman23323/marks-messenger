@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { ChatMessage } from './types/ChatMessage';
 
 @Injectable()
-export class RedisService {
+export class RedisService implements OnApplicationShutdown {
+    private readonly logger = new Logger(RedisService.name);
     private readonly redisPub: Redis;
     private readonly redisSub: Redis;
 
@@ -54,5 +55,14 @@ export class RedisService {
 
     async getRoomMembers(roomId: string): Promise<string[]> {
         return this.redisPub.smembers(`room:${roomId}`);
+    }
+
+    async onApplicationShutdown(signal?: string) {
+        this.logger.log(`Получен сигнал: ${signal}. Закрытие соединения Redis...`);
+
+        await this.redisPub.quit();
+        await this.redisSub.quit();
+
+        this.logger.log('Соединение с Redis закрыто успешно.');
     }
 }

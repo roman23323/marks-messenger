@@ -17,7 +17,10 @@ async function bootstrap() {
       transform: true
     })
   );
-  console.log('Сервер запущен на порту 3000')
+  console.log(`Сервер запущен на порту ${process.env.PORT ?? 3000}`);
+
+  app.enableShutdownHooks();
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
