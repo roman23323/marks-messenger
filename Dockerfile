@@ -1,4 +1,4 @@
-FROM oven/bun:1 AS builder
+FROM oven/bun:alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY src ./src
 RUN bun run build
 
 
-FROM oven/bun:1
+FROM oven/bun:alpine
 
 WORKDIR /app
 
